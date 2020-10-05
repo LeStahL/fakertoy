@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fakertoy</title>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        
+        <!-- Page functionality script -->
+        <script type="text/javascript">
+
+            /** Shows a configurable error page that has a back button that leads back to the previous page state when clicked. **/
+            function showErrorPage(errorMessage = null, errorTitle = null) {
+                var previousPages = $('.f-page').not('.f-hidden');
+
+                $('.f-page').each((index, element) => {
+                    $(element).addClass('f-hidden');
+                });
+                $('#f-error-page').removeClass('f-hidden');
+
+                if(errorMessage != null)
+                    $('#f-error-text').html(errorMessage);
+                
+                if(errorTitle != null)
+                    $('#f-error-title').html(errorTitle);
+
+                $('#f-error-back-button').click(() => {
+                    previousPages.each((index, element) => {
+                        $(element).removeClass('f-hidden');
+                        $('#f-error-page').addClass('f-hidden');
+                    })
+                });
+            }
+
+            /** Shows a page containing information about the selected JSON file and a shader list to choose from. **/
+            function showJSONFilePage(jsonFile) {
+                $('.f-page').each((index, element) => {
+                    $(element).addClass('f-hidden');
+                });
+                $('#f-shaders-page').removeClass('f-hidden');
+
+                var shadertoyData = null;
+                try {
+                    shadertoyData = JSON.parse(jsonFile);
+                }
+                catch(error)
+                {
+                    showErrorPage(error.message, 'ERROR: Could not parse JSON file.');
+                }
+
+                $('#f-user-name').html(shadertoyData.userName);
+                $('#f-export-date').html(shadertoyData.date);
+                $('#f-num-shaders').html(shadertoyData.numShaders);
+
+                var tableContent = '<tr><td>Name</td><td>Edit?</td></tr>\n';
+                shadertoyData.shaders.forEach((element, index) => {
+                    tableContent += '<tr><td>' + element.info.name + '</td><td><button id="' + element.info.id + '">Edit</button></td></tr>\n';
+                });
+                $('#f-shaders-list-table').html(tableContent);
+            }
+
+            /** This contains the main page functionality. **/
+            $(document).ready(() => {
+                $('#f-upload-button').click(() => {
+                    var selectedFiles = $('#f-json-file-input')[0].files;
+                    if(selectedFiles.length != 1)
+                    {
+                        showErrorPage('You did not select a JSON file.', 'ERROR: Need a JSON file to proceed');
+                        return false;
+                    }
+
+                    var fileReader = new FileReader();
+                    fileReader.onload = (event) => {
+                        showJSONFilePage(event.target.result);
+                    }
+                    fileReader.onerror = (event) => {
+                        showErrorPage('There was an error uploading your JSON file..', 'ERROR: Upload of JSON file failed.');
+                    }
+                    fileReader.readAsText(selectedFiles.item(0));
+                });
+            });
+        </script>
+
+        <!-- Page style sheet -->
+        <style type="text/css">
+            .f-menu-item-div {
+                background-color: darkslategray;
+                color:gold;
+                width: 200px;
+            }
+            .f-menu-item-div:hover {
+                background-color: black;
+                color: crimson;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .f-hidden {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- Starting page containing the upload form -->
+        <div class="f-page" id="f-upload-page">
+            <div class="f-page-headline">Upload your Shadertoy JSON file</div>
+            <input type="file" id="f-json-file-input" value="Select JSON file" /><br />
+            <button id="f-upload-button">Upload!</button>
+        </div>
+
+        <!-- Error page -->
+        <div class="f-page f-hidden" id="f-error-page">
+            <div class="f-page-headline" id="f-error-title">Oops! Something went wrong.</div>
+            <div class="f-page-text" id="f-error-text">You might want to hit the back-button in your browser.</div>
+            <button id="f-error-back-button">Back</button>
+        </div>
+
+        <!-- Shader list page -->
+        <div class="f-page f-hidden" id="f-shaders-page">
+            <div class="f-page-headline">Your Shadertoy account</div>
+            <table class="f-data-table" id="f-account-information-table">
+                <tr>
+                    <td>Username:</td>
+                    <td id="f-user-name"></td>
+                </tr>
+                <tr>
+                    <td>Date of JSON export:</td>
+                    <td id="f-export-date"></td>
+                </tr>
+                <tr>
+                    <td>Number of shaders:</td>
+                    <td id="f-num-shaders"></td>
+                </tr>
+            </table>
+            <div class="f-page-headline">Your shaders</div>
+            <table class="f-data-table" id="f-shaders-list-table">
+
+            </table>
+        </div>
+
+        <!-- Edit shader page -->
+        <div class="f-page f-hidden" id="f-edit-shader-page">
+            <div class="f-page-headline">Edit your shader</div>
+        </div>
+    </body>
+</html>
