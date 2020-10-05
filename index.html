@@ -56,6 +56,22 @@
                     tableContent += '<tr><td>' + element.info.name + '</td><td><button id="' + element.info.id + '">Edit</button></td></tr>\n';
                 });
                 $('#f-shaders-list-table').html(tableContent);
+
+                shadertoyData.shaders.forEach((element, index) => {
+                    $('#' + element.info.id).click(() => {
+                        showEditShaderPage(shadertoyData, index);
+                    });
+                })
+            }
+
+            /** Shows a page that is able to edit a specific shader. **/
+            function showEditShaderPage(shadertoyData, shaderIndex) {
+                $('.f-page').each((index, element) => {
+                    $(element).addClass('f-hidden');
+                });
+                $('#f-edit-shader-page').removeClass('f-hidden');
+
+                $('#f-shader-edit-headline').html('Edit ' + shadertoyData.shaders[shaderIndex].info.name);
             }
 
             /** This contains the main page functionality. **/
@@ -139,7 +155,7 @@
 
         <!-- Edit shader page -->
         <div class="f-page f-hidden" id="f-edit-shader-page">
-            <div class="f-page-headline">Edit your shader</div>
+            <div class="f-page-headline" id="f-shader-edit-headline">Edit your shader</div>
         </div>
     </body>
 </html>
