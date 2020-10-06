@@ -3,8 +3,13 @@
     <head>
         <title>Fakertoy</title>
 
+        <!-- JQuery -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         
+        <!-- CodeMirror -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.1/codemirror.min.js" integrity="sha512-WWC1A/JchDFZ2ZGaNyMC7CmPFXGLI/6Ih7WN6YG0DX1NGMkW5lqCVFxCmEx3e56Z7iqdQGpO0f+m2t9CJhdb2Q==" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.1/codemirror.min.css" integrity="sha512-xIf9AdJauwKIVtrVRZ0i4nHP61Ogx9fSRAkCLecmE2dL/U8ioWpDvFCAy4dcfecN72HHB9+7FfQj3aiO68aaaw==" crossorigin="anonymous" />
+
         <!-- Page functionality script -->
         <script type="text/javascript">
 
@@ -72,6 +77,48 @@
                 $('#f-edit-shader-page').removeClass('f-hidden');
 
                 $('#f-shader-edit-headline').html('Edit ' + shadertoyData.shaders[shaderIndex].info.name);
+
+                var tableContent = '<tr>';
+                shadertoyData.shaders[shaderIndex].renderpass.forEach((element, index) => {
+                    tableContent += '<td><button id="f-pass-index-' + index + '">' + element.name + '</button></td>';
+                });
+                tableContent += '</tr>';
+                $('#f-renderpass-table').html(tableContent);
+
+                shadertoyData.shaders[shaderIndex].renderpass.forEach((element, index) => {
+                    $('#f-pass-index-' + index).click(() => {
+                        $('#f-editor-div').html('');
+                        var codeMirror = CodeMirror($('#f-editor-div')[0], {
+                            value: element.code,
+                            mode:  "glsl",
+                        });
+                        codeMirror.on('change', (codeMirror, change) => {
+                            shadertoyData.shaders[shaderIndex].renderpass[index].code = codeMirror.getValue();
+                        });
+                    });
+                });
+                $('#f-pass-index-0').click();
+
+                $('#f-back-to-shaders').click(() => {
+                    $('.f-page').each((index, element) => {
+                        $(element).addClass('f-hidden');
+                    });
+                    $('#f-shaders-page').removeClass('f-hidden');
+
+                    $('#f-renderpass-table').html('');
+                    $('#f-editor-div').html('');
+                });
+
+                // UGLY HACK :( I'm unhappy with it. Is there a better way to download a js object as JSON file?
+                $('#f-download-json').click(() => {
+                    $("<a />", {
+                        "download": "shaders.json",
+                        "href" : "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(shadertoyData)),
+                    }).appendTo("body")
+                    .click(function() {
+                        $(this).remove()
+                    })[0].click();
+                });
             }
 
             /** This contains the main page functionality. **/
@@ -156,6 +203,10 @@
         <!-- Edit shader page -->
         <div class="f-page f-hidden" id="f-edit-shader-page">
             <div class="f-page-headline" id="f-shader-edit-headline">Edit your shader</div>
+            <table id="f-renderpass-table"></table>
+            <div id="f-editor-div"></div>
+            <button id="f-back-to-shaders">Back to list of shaders</button>
+            <button id="f-download-json">Download JSON</button>
         </div>
     </body>
 </html>
